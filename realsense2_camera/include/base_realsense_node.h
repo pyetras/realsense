@@ -123,6 +123,7 @@ namespace realsense2_camera
                         const rs2_extrinsics& from_to_other,
                         std::vector<uint8_t>& out_vec);
 
+        rs2::frame postProcessFrame(rs2::frame frame);
         std::string _json_file_path;
         std::string _serial_no;
         float _depth_scale_meters;
@@ -173,6 +174,12 @@ namespace realsense2_camera
 
         std::map<stream_index_pair, bool> _is_frame_arrived;
         const std::string _namespace;
+        
+        std::shared_ptr<rs2::decimation_filter> decimation_filter; // reduces resolution of depth frame
+        std::shared_ptr<rs2::spatial_filter> spatial_filter; // edge-preserving spatial smoothing
+        std::shared_ptr<rs2::temporal_filter> temporal_filter; // reduces temporal noise
+        std::shared_ptr<rs2::disparity_transform> depth_to_disparity; // converts stereostopic depth to disparity
+        std::shared_ptr<rs2::disparity_transform> disparity_to_depth; // and vice versa
     };//end class
 
     class BaseD400Node : public BaseRealSenseNode

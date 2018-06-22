@@ -79,6 +79,15 @@ BaseRealSenseNode::BaseRealSenseNode(ros::NodeHandle& nodeHandle,
     _encoding[ACCEL] = sensor_msgs::image_encodings::TYPE_8UC1; // ROS message type
     _unit_step_size[ACCEL] = sizeof(uint8_t); // sensor_msgs::ImagePtr row step size
     _stream_name[ACCEL] = "accel";
+
+    // Inititalize filters
+    decimation_filter = std::make_shared<rs2::decimation_filter>();
+    temporal_filter = std::make_shared<rs2::temporal_filter>();
+    spatial_filter = std::make_shared<rs2::spatial_filter>();
+    depth_to_disparity = std::make_shared<rs2::disparity_transform>(true);
+    disparity_to_depth = std::make_shared<rs2::disparity_transform>(false);
+
+    // Set filter options -- TODO: add in all available filter parameters
 }
 
 void BaseRealSenseNode::publishTopics()
@@ -88,7 +97,6 @@ void BaseRealSenseNode::publishTopics()
     setupPublishers();
     setupStreams();
     publishStaticTransforms();
-    ROS_INFO_STREAM("RealSense Node Is Up!");
 }
 
 void BaseRealSenseNode::registerDynamicReconfigCb()
@@ -423,6 +431,18 @@ void BaseRealSenseNode::alignFrame(const rs2_intrinsics& from_intrin,
     }
 }
 
+rs2::frame BaseRealSenseNode::postProcessFrame(rs2::frame frame) 
+{
+    // auto f = decimation_filter->process(frame); // decimation filter not added yet
+    auto f = depth_to_disparity->process(frame);
+    f = spatial_filter->process(f);
+    f = temporal_filter->process(f);
+    frame = disparity_to_depth->process(f);
+    // auto video_profile = frame.get_profile().as<rs2::video_stream_profile>();
+    // updateStreamCalibData(video_profile);
+    return frame;
+}
+
 void BaseRealSenseNode::updateIsFrameArrived(std::map<stream_index_pair, bool>& is_frame_arrived,
                                              rs2_stream stream_type, int stream_index)
 {
@@ -553,7 +573,6 @@ void BaseRealSenseNode::setupStreams()
                 std::vector<rs2::frame> frames;
                 if (frame.is<rs2::frameset>())
                 {
-                    ROS_DEBUG("Frameset arrived.");
                     bool is_depth_arrived = false;
                     rs2::frame depth_frame;
                     auto frameset = frame.as<rs2::frameset>();
@@ -562,6 +581,11 @@ void BaseRealSenseNode::setupStreams()
                         auto f = (*it);
                         auto stream_type = f.get_profile().stream_type();
                         auto stream_index = f.get_profile().stream_index();
+												// depth filter post-processing 
+                        if (stream_type == RS2_STREAM_DEPTH)
+												{
+                          f = postProcessFrame(f);
+												}
                         updateIsFrameArrived(is_frame_arrived, stream_type, stream_index);
 
                         ROS_DEBUG("Frameset contain (%s, %d) frame. frame_number: %llu ; frame_TS: %f ; ros_TS(NSec): %lu",
@@ -596,6 +620,12 @@ void BaseRealSenseNode::setupStreams()
                 {
                     auto stream_type = frame.get_profile().stream_type();
                     auto stream_index = frame.get_profile().stream_index();
+                    if (stream_type == RS2_STREAM_DEPTH)
+                    {
+                      frame = postProcessFrame(frame);
+                    }
+                    stream_type = frame.get_profile().stream_type();
+                    stream_index = frame.get_profile().stream_index();
                     updateIsFrameArrived(is_frame_arrived, stream_type, stream_index);
                     ROS_DEBUG("Single video frame arrived (%s, %d). frame_number: %llu ; frame_TS: %f ; ros_TS(NSec): %lu",
                               rs2_stream_to_string(stream_type), stream_index, frame.get_frame_number(), frame.get_timestamp(), t.toNSec());
@@ -876,7 +906,7 @@ void BaseRealSenseNode::updateStreamCalibData(const rs2::video_stream_profile& v
             {
                 auto video_profile = profile.as<rs2::video_stream_profile>();
                 stream_index_pair stream_index{video_profile.stream_type(), video_profile.stream_index()};
-                _depth_aligned_camera_info[stream_index] = _camera_info[stream_index];
+                _depth_aligned_camera_info[stream_index] = _camera_info[DEPTH];
             }
         }
     }
