@@ -43,6 +43,22 @@
   <arg name="enable_sync"         default="false"/>
   <arg name="align_depth"         default="false"/>
 
+  <arg name="spatial_filter"      default="false"/>
+  <arg name="spatial_alpha"       default="0.5"/>
+  <arg name="spatial_delta"       default="20"/>
+  <arg name="spatial_iterations"  default="2"/>
+
+  <arg name="temporal_filter"      default="false"/>
+  <arg name="temporal_alpha"       default="0.4"/>
+  <arg name="temporal_delta"       default="20"/>
+  <arg name="temporal_persistence" default="3"/>
+
+  <arg name="holes_filter"         default="false"/>
+  <arg name="holes_filling_mode"   default="1"/>
+
+  <arg name="decimation_filter"    default="true"/>
+  <arg name="dec_downsample_scale" default="2"/>
+
   <node pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" output="screen"/>
   <node pkg="nodelet" type="nodelet" name="realsense2_camera" args="load realsense2_camera/RealSenseNodeFactory $(arg manager)">
     <param name="serial_no"                type="str"  value="$(arg serial_no)"/>
@@ -93,6 +109,21 @@
     <param name="aligned_depth_to_infra1_frame_id"  type="str"  value="camera_aligned_depth_to_infra1_frame"/>
     <param name="aligned_depth_to_infra2_frame_id"  type="str"  value="camera_aligned_depth_to_infra2_frame"/>
     <param name="aligned_depth_to_fisheye_frame_id" type="str"  value="camera_aligned_depth_to_fisheye_frame"/>
+
+    <param name="active_spatial_filter"    type="bool"    value="$(arg spatial_filter)"/>
+    <param name="spatial_alpha"            type="double"  value="$(arg spatial_alpha)"/>
+    <param name="spatial_delta"            type="int"     value="$(arg spatial_delta)"/>
+    <param name="spatial_iterations"       type="int"     value="$(arg spatial_iterations)"/>
+
+    <param name="active_temporal_filter"    type="bool"   value="$(arg temporal_filter)"/>
+    <param name="temporal_alpha"            type="double" value="$(arg temporal_alpha)"/>
+    <param name="temporal_delta"            type="int"    value="$(arg temporal_delta)"/>
+    <param name="temporal_persistence"      type="int"    value="$(arg temporal_persistence)"/>
+
+    <param name="active_holes_filter"       type="bool"   value="$(arg holes_filter)"/>
+    <param name="holes_filling_mode"        type="int"    value="$(arg holes_filling_mode)"/>
+    <param name="active_decimation_filter"  type="bool"   value="$(arg decimation_filter)"/>
+    <param name="dec_downsample_scale"      type="int"    value="$(arg dec_downsample_scale)"/>
   </node>
 </launch>
 

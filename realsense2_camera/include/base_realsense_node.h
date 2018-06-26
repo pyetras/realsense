@@ -83,6 +83,7 @@ namespace realsense2_camera
 
         static std::string getNamespaceStr();
         void getParameters();
+        void setupPostProcessing();
         void setupDevice();
         void setupPublishers();
         void setupStreams();
@@ -175,11 +176,34 @@ namespace realsense2_camera
         std::map<stream_index_pair, bool> _is_frame_arrived;
         const std::string _namespace;
         
-        std::shared_ptr<rs2::decimation_filter> decimation_filter; // reduces resolution of depth frame
-        std::shared_ptr<rs2::spatial_filter> spatial_filter; // edge-preserving spatial smoothing
-        std::shared_ptr<rs2::temporal_filter> temporal_filter; // reduces temporal noise
-        std::shared_ptr<rs2::disparity_transform> depth_to_disparity; // converts stereostopic depth to disparity
-        std::shared_ptr<rs2::disparity_transform> disparity_to_depth; // and vice versa
+        std::shared_ptr<rs2::decimation_filter> _decimation_filter;     // reduces resolution of depth frame
+        std::shared_ptr<rs2::spatial_filter> _spatial_filter;           // edge-preserving spatial smoothing
+        std::shared_ptr<rs2::temporal_filter> _temporal_filter;         // reduces temporal noise
+        std::shared_ptr<rs2::hole_filling_filter> _hole_filling_filter; // rectifies missing data
+        std::shared_ptr<rs2::disparity_transform> _depth_to_disparity;  // converts stereostopic depth to disparity
+        std::shared_ptr<rs2::disparity_transform> _disparity_to_depth;  //   and vice versa
+
+        // Spatial filter options
+        bool _active_spatial_filter;
+        float _spatial_alpha; 
+        int _spatial_delta;
+        int _spatial_iterations;
+        // TODO: Documentation also lists holes filling option. 
+
+        // Temporal filter options
+        bool _active_temporal_filter;
+        float _temporal_alpha;
+        int _temporal_delta;
+        int _temporal_persistence;
+
+        // Holes filter options
+        bool _active_holes_filter;
+        int _holes_filling_mode;
+
+        // Decimation filter options TODO: integrate decimation filter
+        bool _active_decimation_filter;
+        int _decimation_downsample_scale;
+
     };//end class
 
     class BaseD400Node : public BaseRealSenseNode

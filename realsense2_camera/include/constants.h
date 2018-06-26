@@ -91,5 +91,23 @@ namespace realsense2_camera
     const std::string DEFAULT_ALIGNED_DEPTH_TO_INFRA2_FRAME_ID = "camera_aligned_depth_to_infra2_frame";
     const std::string DEFAULT_ALIGNED_DEPTH_TO_FISHEYE_FRAME_ID = "camera_aligned_depth_to_fisheye_frame";
 
+    // Post processing constants
+    // Spatial filter
+    const bool DEFAULT_ACTIVE_SPATIAL          = false;
+    const float DEFAULT_SPATIAL_ALPHA          = 0.5;
+    const int DEFAULT_SPATIAL_DELTA        = 20;
+    const int DEFAULT_SPATIAL_ITERATIONS       = 2;
+    // Temporal filter
+    const bool DEFAULT_ACTIVE_TEMPORAL         = false;
+    const float DEFAULT_TEMPORAL_ALPHA         = 0.4;
+    const int DEFAULT_TEMPORAL_DELTA           = 20;
+    const int DEFAULT_TEMPORAL_PERSISTENCE     = 3;
+    // Holes filter
+    const bool DEFAULT_ACTIVE_HOLES            = false;
+    const int DEFAULT_HOLES_FILLING_MODE       = 1;
+    // Decimation filter
+    const bool DEFAULT_ACTIVE_DECIMATION       = false;
+    const int DEFAULT_DEC_DOWNSAMPLE_SCALE     = 2;
+
     using stream_index_pair = std::pair<rs2_stream, int>;
 }  // namespace realsense2_camera
